@@ -87,6 +87,10 @@ export interface GeneratedContent {
   footer?: string;        // 页脚
 }
 
+export interface EditableContent extends GeneratedContent {
+  // 编辑模式用的字段
+}
+
 export interface PosterData {
   scene: SceneId;
   template: Template;

@@ -13,10 +13,11 @@ const RATIOS: { id: ExportRatio; label: string; size: { w: number; h: number } }
 
 export default function PreviewPage() {
   const navigate = useNavigate();
-  const { sceneId, answers, generated, selectedTemplate, setTemplate } = useFlowStore();
+  const { sceneId, answers, generated, selectedTemplate, setTemplate, isEditing, setIsEditing, updateContent } = useFlowStore();
 
   const [ratio, setRatio] = useState<ExportRatio>('3:4');
   const [exporting, setExporting] = useState(false);
+  const [editedContent, setEditedContent] = useState(generated);
   const posterRef = useRef<HTMLDivElement>(null);
 
   // 选择模板池
@@ -32,6 +33,10 @@ export default function PreviewPage() {
     }
   }, [selectedTemplate, templates, setTemplate]);
 
+  useEffect(() => {
+    setEditedContent(generated);
+  }, [generated]);
+
   if (!sceneId || !generated) {
     return (
       <div className="py-16 text-center text-ink-500">
@@ -43,6 +48,7 @@ export default function PreviewPage() {
 
   const template = selectedTemplate || templates[0];
   const ratioConfig = RATIOS.find((r) => r.id === ratio)!;
+  const displayContent = editedContent || generated;
 
   const handleExport = async () => {
     if (!posterRef.current) return;
@@ -65,6 +71,18 @@ export default function PreviewPage() {
     }
   };
 
+  const handleEditSave = () => {
+    if (editedContent) {
+      updateContent(editedContent);
+    }
+    setIsEditing(false);
+  };
+
+  const handleEditCancel = () => {
+    setEditedContent(generated);
+    setIsEditing(false);
+  };
+
   return (
     <div className="space-y-5">
       {/* 顶部导航 */}
@@ -80,76 +98,158 @@ export default function PreviewPage() {
         </button>
       </div>
 
-      {/* 海报预览容器 */}
-      <div className="bg-white rounded-lg border border-ink-100 p-4">
-        <div className="w-full overflow-auto flex justify-center">
-          <div
-            ref={posterRef}
-            style={{
-              width: ratioConfig.size.w,
-              height: ratioConfig.size.h,
-              transform: 'scale(0.3)',
-              transformOrigin: 'top center',
-              marginBottom: `-${ratioConfig.size.h * 0.7}px`,
-            }}
-          >
-            <Poster
-              template={template}
-              content={generated}
-              ratio={ratio}
-            />
+      {isEditing ? (
+        // 编辑模式
+        <div className="space-y-4 bg-ink-50 rounded-lg p-4">
+          <h3 className="text-[14px] font-medium text-ink-900">编辑海报文案</h3>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="text-[12px] font-medium text-ink-600">主标题</label>
+              <input
+                type="text"
+                value={editedContent?.headline || ''}
+                onChange={(e) => setEditedContent(prev => prev ? { ...prev, headline: e.target.value } : prev)}
+                className="w-full mt-1 px-3 py-2 text-[13px] border border-ink-200 rounded-md focus:outline-none focus:ring-2 focus:ring-ink-900"
+              />
+            </div>
+
+            <div>
+              <label className="text-[12px] font-medium text-ink-600">副标题</label>
+              <input
+                type="text"
+                value={editedContent?.subheadline || ''}
+                onChange={(e) => setEditedContent(prev => prev ? { ...prev, subheadline: e.target.value } : prev)}
+                className="w-full mt-1 px-3 py-2 text-[13px] border border-ink-200 rounded-md focus:outline-none focus:ring-2 focus:ring-ink-900"
+              />
+            </div>
+
+            <div>
+              <label className="text-[12px] font-medium text-ink-600">要点列表 (每行一条)</label>
+              <textarea
+                value={editedContent?.bullets.join('\n') || ''}
+                onChange={(e) => setEditedContent(prev => prev ? { ...prev, bullets: e.target.value.split('\n').filter(l => l.trim()) } : prev)}
+                className="w-full mt-1 px-3 py-2 text-[13px] border border-ink-200 rounded-md focus:outline-none focus:ring-2 focus:ring-ink-900"
+                rows={4}
+              />
+            </div>
+
+            <div>
+              <label className="text-[12px] font-medium text-ink-600">行动号召</label>
+              <input
+                type="text"
+                value={editedContent?.cta || ''}
+                onChange={(e) => setEditedContent(prev => prev ? { ...prev, cta: e.target.value } : prev)}
+                className="w-full mt-1 px-3 py-2 text-[13px] border border-ink-200 rounded-md focus:outline-none focus:ring-2 focus:ring-ink-900"
+              />
+            </div>
+
+            <div>
+              <label className="text-[12px] font-medium text-ink-600">联系方式</label>
+              <input
+                type="text"
+                value={editedContent?.contact || ''}
+                onChange={(e) => setEditedContent(prev => prev ? { ...prev, contact: e.target.value } : prev)}
+                className="w-full mt-1 px-3 py-2 text-[13px] border border-ink-200 rounded-md focus:outline-none focus:ring-2 focus:ring-ink-900"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleEditSave}
+              className="flex-1 h-10 rounded-md bg-ink-900 text-white text-[13px] font-medium hover:bg-ink-800 transition-colors"
+            >
+              保存
+            </button>
+            <button
+              onClick={handleEditCancel}
+              className="flex-1 h-10 rounded-md bg-white text-ink-900 text-[13px] font-medium border border-ink-200 hover:bg-ink-50 transition-colors"
+            >
+              取消
+            </button>
           </div>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* 海报预览容器 */}
+          <div className="bg-white rounded-lg border border-ink-100 p-4">
+            <div className="w-full overflow-auto flex justify-center">
+              <div
+                ref={posterRef}
+                style={{
+                  width: ratioConfig.size.w,
+                  height: ratioConfig.size.h,
+                  transform: 'scale(0.3)',
+                  transformOrigin: 'top center',
+                  marginBottom: `-${ratioConfig.size.h * 0.7}px`,
+                }}
+              >
+                <Poster
+                  template={template}
+                  content={displayContent}
+                  ratio={ratio}
+                />
+              </div>
+            </div>
+          </div>
 
-      {/* 尺寸切换 */}
-      <section>
-        <h3 className="text-[12px] font-medium text-ink-400 uppercase tracking-wider mb-2">导出尺寸</h3>
-        <div className="grid grid-cols-3 gap-2">
-          {RATIOS.map((r) => (
+          {/* 尺寸切换 */}
+          <section>
+            <h3 className="text-[12px] font-medium text-ink-400 uppercase tracking-wider mb-2">导出尺寸</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {RATIOS.map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => setRatio(r.id)}
+                  className={`h-10 text-[13px] rounded-md border transition-all ${
+                    ratio === r.id
+                      ? 'bg-ink-900 border-ink-900 text-white'
+                      : 'bg-white border-ink-200 text-ink-700 hover:border-ink-400'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* 模板切换 */}
+          <section>
+            <h3 className="text-[12px] font-medium text-ink-400 uppercase tracking-wider mb-2">切换风格</h3>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {templates.map((t) => (
+                <TemplateSwatch
+                  key={t.id}
+                  template={t}
+                  active={t.id === template.id}
+                  onClick={() => setTemplate(t)}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* 编辑和导出按钮 */}
+          <div className="space-y-2 pt-2">
             <button
-              key={r.id}
-              onClick={() => setRatio(r.id)}
-              className={`h-10 text-[13px] rounded-md border transition-all ${
-                ratio === r.id
-                  ? 'bg-ink-900 border-ink-900 text-white'
-                  : 'bg-white border-ink-200 text-ink-700 hover:border-ink-400'
-              }`}
+              onClick={() => setIsEditing(true)}
+              className="w-full h-12 rounded-md border border-ink-200 text-ink-900 text-[15px] font-medium hover:bg-ink-50 transition-colors"
             >
-              {r.label}
+              编辑文案
             </button>
-          ))}
-        </div>
-      </section>
-
-      {/* 模板切换 */}
-      <section>
-        <h3 className="text-[12px] font-medium text-ink-400 uppercase tracking-wider mb-2">切换风格</h3>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {templates.map((t) => (
-            <TemplateSwatch
-              key={t.id}
-              template={t}
-              active={t.id === template.id}
-              onClick={() => setTemplate(t)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* 导出按钮 */}
-      <div className="pt-2">
-        <button
-          onClick={handleExport}
-          disabled={exporting}
-          className="w-full h-12 rounded-md bg-ink-900 text-white text-[15px] font-medium disabled:bg-ink-400 transition-colors"
-        >
-          {exporting ? '正在导出…' : '下载海报 PNG'}
-        </button>
-        <p className="mt-2 text-center text-[12px] text-ink-400">
-          图片默认 1080px 宽 · 2x 高清
-        </p>
-      </div>
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="w-full h-12 rounded-md bg-ink-900 text-white text-[15px] font-medium disabled:bg-ink-400 transition-colors"
+            >
+              {exporting ? '正在导出…' : '下载海报 PNG'}
+            </button>
+            <p className="mt-2 text-center text-[12px] text-ink-400">
+              图片默认 1080px 宽 · 2x 高清
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 }
