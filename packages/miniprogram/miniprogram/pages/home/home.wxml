@@ -1,0 +1,26 @@
+<view class="container">
+  <view class="hero">
+    <view class="hero-title">点击式生成招募海报</view>
+    <view class="hero-subtitle">不用写文案，不用会设计。几次点击，30 秒产出专业海报。</view>
+  </view>
+
+  <view class="section-title">选择场景</view>
+
+  <view class="scene-list">
+    <view
+      class="scene-item"
+      wx:for="{{scenes}}"
+      wx:key="id"
+      bindtap="onPickScene"
+      data-id="{{item.id}}"
+    >
+      <view class="scene-name">{{item.name}}</view>
+      <view class="scene-subtitle">{{item.subtitle}}</view>
+      <view class="scene-desc">{{item.description}}</view>
+    </view>
+  </view>
+
+  <view class="notice">
+    当前为 MVP 骨架。完整问答 flow 与模板生成仍在开发中，请先在 H5 端体验。
+  </view>
+</view>

@@ -1,0 +1,31 @@
+page {
+  background: #F7F8FA;
+  font-family: "PingFang SC", "Helvetica Neue", Helvetica, sans-serif;
+  color: #1A1F2C;
+}
+
+.container {
+  padding: 24rpx 32rpx;
+}
+
+.btn-primary {
+  height: 96rpx;
+  line-height: 96rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  background: #0F121A;
+  color: #FFFFFF;
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.btn-primary[disabled] {
+  background: #DCE0E8;
+  color: #8B95A8;
+}
+
+.card {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  border: 1rpx solid #EEF0F4;
+}
