@@ -1,0 +1,8 @@
+<view class="container">
+  <view class="placeholder">
+    <view class="placeholder-title">海报预览与导出开发中</view>
+    <view class="placeholder-desc">
+      小程序端预计使用 Canvas 2D 绘制海报并通过 wx.canvasToTempFilePath 导出本地图片。
+    </view>
+  </view>
+</view>
