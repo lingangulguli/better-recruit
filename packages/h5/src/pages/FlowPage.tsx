@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   getFlow,
@@ -23,6 +23,8 @@ export default function FlowPage() {
   const setStep = useFlowStore((s) => s.setStep);
   const setAnswer = useFlowStore((s) => s.setAnswer);
   const setGenerated = useFlowStore((s) => s.setGenerated);
+
+  const [isGenerating, setIsGenerating] = useState(false);
 
   if (!scene || questions.length === 0) {
     return (
@@ -54,9 +56,15 @@ export default function FlowPage() {
 
   const handleNext = async () => {
     if (isLast) {
-      const content = await mockGenerate(sceneId as SceneId, answers);
-      setGenerated(content);
-      navigate('/preview');
+      setIsGenerating(true);
+      try {
+        const content = await mockGenerate(sceneId as SceneId, answers);
+        setGenerated(content);
+        navigate('/preview');
+      } catch (err) {
+        console.error('生成失败:', err);
+        setIsGenerating(false);
+      }
       return;
     }
     setStep(stepIndex + 1);
@@ -102,14 +110,23 @@ export default function FlowPage() {
 
       {/* 底部按钮 */}
       <div className="pt-2">
+        {isGenerating && (
+          <div className="flex items-center justify-center gap-2 py-4 text-ink-500">
+            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span className="text-[14px]">AI 正在生成文案...</span>
+          </div>
+        )}
         <button
           onClick={handleNext}
-          disabled={!isAnswered}
+          disabled={!isAnswered || isGenerating}
           className="w-full h-12 rounded-md bg-ink-900 text-white text-[15px] font-medium disabled:bg-ink-200 disabled:text-ink-400 transition-colors"
         >
-          {isLast ? '生成海报' : '下一步'}
+          {isGenerating ? '生成中...' : isLast ? '生成海报' : '下一步'}
         </button>
-        {!current.required && !isAnswered && (
+        {!current.required && !isAnswered && !isGenerating && (
           <button
             onClick={handleNext}
             className="mt-2 w-full text-center text-[13px] text-ink-400 hover:text-ink-600 py-2"

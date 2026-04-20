@@ -164,7 +164,7 @@ function generateEvent(answers: UserAnswers): GeneratedContent {
  */
 async function callLLMAPI(prompt: string): Promise<string> {
   try {
-    const response = await fetch('http://localhost:3001/api/llm/generate', {
+    const response = await fetch('/api/llm/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
